@@ -1,8 +1,20 @@
-# Update Book
+### 📌 `update.md`
+```markdown
+# Update Book Test
 
 ```python
->>> book = Book.objects.get(title="1984")
->>> book.title = "Nineteen Eighty-Four"
->>> book.save()
->>> book.title
-'Nineteen Eighty-Four'
+from bookshelf.models import Book
+
+# Update the title of the book
+book = Book.objects.get(title="1984")
+book.title = "Nineteen Eighty-Four"
+book.save()
+book
+Expected Output
+text
+Copy
+Edit
+<Book: Nineteen Eighty-Four by George Orwell (1949)>
+yaml
+Copy
+Edit

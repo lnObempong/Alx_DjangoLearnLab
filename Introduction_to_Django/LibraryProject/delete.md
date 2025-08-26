@@ -1,9 +1,18 @@
-# Delete Book
+### 📌 `delete.md`
+```markdown
+# Delete Book Test
 
 ```python
->>> book = Book.objects.get(title="Nineteen Eighty-Four")
->>> book.delete()
-(1, {'bookshelf.Book': 1})
+from bookshelf.models import Book
 
->>> Book.objects.all()
+# Delete the book
+book = Book.objects.get(title="Nineteen Eighty-Four")
+book.delete()
+
+# Confirm deletion
+Book.objects.all()
+Expected Output
+text
+Copy
+Edit
 <QuerySet []>
