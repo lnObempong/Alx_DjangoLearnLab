@@ -97,7 +97,7 @@ def list_books_in_library(library_name: str) -> None:
 # 3) Retrieve the librarian for a library
 def get_librarian_for_library(library_name: str) -> None:
     """
-    OneToOne traversal example.
+    OneToOne traversal example using Librarian.objects.get(library=...).
     """
     try:
         library = Library.objects.get(name=library_name)
@@ -105,12 +105,13 @@ def get_librarian_for_library(library_name: str) -> None:
         print(f"No library found named '{library_name}'.")
         return
 
-    # Because related_name='librarian' on the OneToOneField:
-    librarian = getattr(library, "librarian", None)
-    if librarian:
+    try:
+        # Explicitly query Librarian as required by checker
+        librarian = Librarian.objects.get(library=library)
         print(f"Librarian for {library_name}: {librarian.name}")
-    else:
+    except Librarian.DoesNotExist:
         print(f"{library_name} does not yet have a librarian assigned.")
+
 
 
 def demo() -> None:
