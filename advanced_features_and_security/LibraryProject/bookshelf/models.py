@@ -1,4 +1,5 @@
-# bookshelf/models.py
+
+
 from django.db import models
 
 class Category(models.Model):
