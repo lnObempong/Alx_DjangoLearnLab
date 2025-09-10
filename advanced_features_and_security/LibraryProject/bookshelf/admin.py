@@ -1,9 +1,21 @@
-from django.contrib import admin
-from .models import Book
 
-# Register Book with some customization
-@admin.register(Book)
+from django.contrib import admin
+from .models import Book, CustomUser
+from django.contrib.auth.admin import UserAdmin
+
+
+
+# Register your models here.
 class BookAdmin(admin.ModelAdmin):
-    list_display = ('title', 'author', 'publication_year')  # show these fields in list view
-    search_fields = ('title', 'author')  # add a search box for title and author
-    list_filter = ('publication_year',)  # add filter by publication year
+    list_display = ('title', 'author', 'publication_year')
+    search_fields = ('title', 'author')
+    list_filter = ['author', 'publication_year']
+
+class CustomUserAdmin(UserAdmin):
+    """Custom admin panel configuration for CustomUser"""
+    model = CustomUser
+    list_display = ["username", "email", "first_name", "last_name", "is_staff"]
+
+
+admin.site.register(Book, BookAdmin)
+admin.site.register(CustomUser, CustomUserAdmin)
