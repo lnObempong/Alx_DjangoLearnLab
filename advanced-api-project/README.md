@@ -24,3 +24,20 @@ This project demonstrates building a Django REST Framework API with:
 - Example:
   ```bash
   curl -X GET http://127.0.0.1:8000/api/books/
+
+## Filtering, Searching, and Ordering
+
+The Books API supports advanced query options:
+
+### Filtering
+- `/api/books/?title=Things Fall Apart`
+- `/api/books/?publication_year=1960`
+- `/api/books/?author=1`
+
+### Searching
+- `/api/books/?search=Chinua`
+- `/api/books/?search=Fall`
+
+### Ordering
+- `/api/books/?ordering=title` (A–Z)
+- `/api/books/?ordering=-publication_year` (Newest first)
