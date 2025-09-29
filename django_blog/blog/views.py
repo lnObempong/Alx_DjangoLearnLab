@@ -8,9 +8,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import (
     ListView, DetailView, CreateView, UpdateView, DeleteView
 )
+from django.db.models import Q
 
 from .forms import UserRegisterForm, PostForm, CommentForm
-from .models import Post, Comment
+from .models import Post, Comment, Tag
 
 
 # ==============================
@@ -70,25 +71,50 @@ class PostDetailView(DetailView):
 
 
 class PostCreateView(LoginRequiredMixin, CreateView):
-    """Allow logged-in users to create a new post."""
+    """Allow logged-in users to create a new post (with tags)."""
     model = Post
     form_class = PostForm
     template_name = "blog/post_form.html"
 
     def form_valid(self, form):
         form.instance.author = self.request.user
-        return super().form_valid(form)
+        response = super().form_valid(form)
+
+        # Handle tags
+        tags_str = form.cleaned_data.get('tags', '')
+        if tags_str:
+            tag_names = [t.strip().lower() for t in tags_str.split(',') if t.strip()]
+            for name in tag_names:
+                tag_obj, _ = Tag.objects.get_or_create(name=name)
+                self.object.tags.add(tag_obj)
+        return response
 
 
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
-    """Allow only the author to update their post."""
+    """Allow only the author to update their post (with tags)."""
     model = Post
     form_class = PostForm
     template_name = "blog/post_form.html"
 
+    def get_initial(self):
+        initial = super().get_initial()
+        # Pre-fill tags as comma-separated list
+        initial['tags'] = ', '.join(tag.name for tag in self.get_object().tags.all())
+        return initial
+
     def form_valid(self, form):
         form.instance.author = self.request.user
-        return super().form_valid(form)
+        response = super().form_valid(form)
+
+        # Update tags: clear existing then re-add
+        tags_str = form.cleaned_data.get('tags', '')
+        self.object.tags.clear()
+        if tags_str:
+            tag_names = [t.strip().lower() for t in tags_str.split(',') if t.strip()]
+            for name in tag_names:
+                tag_obj, _ = Tag.objects.get_or_create(name=name)
+                self.object.tags.add(tag_obj)
+        return response
 
     def test_func(self):
         return self.request.user == self.get_object().author
@@ -147,3 +173,42 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
     def test_func(self):
         return self.request.user == self.get_object().author
+
+
+# ==============================
+# Tag + Search Views
+# ==============================
+
+class TagPostsListView(ListView):
+    """List posts filtered by a specific tag."""
+    model = Post
+    template_name = 'blog/posts_by_tag.html'
+    context_object_name = 'posts'
+    paginate_by = 10
+
+    def get_queryset(self):
+        tag_name = self.kwargs.get('tag_name')
+        return Post.objects.filter(tags__name__iexact=tag_name).order_by('-published_date')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['tag_name'] = self.kwargs.get('tag_name')
+        return context
+
+
+class SearchResultsView(ListView):
+    """List posts filtered by a search query (title, content, tags)."""
+    model = Post
+    template_name = 'blog/search_results.html'
+    context_object_name = 'posts'
+    paginate_by = 10
+
+    def get_queryset(self):
+        query = self.request.GET.get('q', '')
+        if not query:
+            return Post.objects.none()
+        return Post.objects.filter(
+            Q(title__icontains=query) |
+            Q(content__icontains=query) |
+            Q(tags__name__icontains=query)
+        ).distinct().order_by('-published_date')

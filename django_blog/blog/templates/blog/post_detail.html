@@ -1,5 +1,5 @@
-
 {% extends "base.html" %}
+
 {% block content %}
 <h2>{{ object.title }}</h2>
 <p>{{ object.content }}</p>
@@ -9,8 +9,24 @@
   <a href="{% url 'post-update' object.pk %}">Edit</a> |
   <a href="{% url 'post-delete' object.pk %}">Delete</a>
 {% endif %}
+
+{# ============================
+   Tags Section
+   ============================ #}
+{% if object.tags.all %}
+  <p>
+    Tags:
+    {% for tag in object.tags.all %}
+      <a href="{% url 'posts-by-tag' tag.name %}">{{ tag.name }}</a>{% if not forloop.last %}, {% endif %}
+    {% endfor %}
+  </p>
+{% endif %}
+
 <hr>
 
+{# ============================
+   Comments Section
+   ============================ #}
 <h3>Comments ({{ object.comments.count }})</h3>
 
 <div id="comments">
@@ -32,6 +48,9 @@
   {% endfor %}
 </div>
 
+{# ============================
+   Add Comment Form
+   ============================ #}
 {% if user.is_authenticated %}
   <h4>Leave a comment</h4>
   <form method="post" action="{% url 'comment-create' object.pk %}">
@@ -43,5 +62,6 @@
   <p><a href="{% url 'login' %}">Log in</a> to leave a comment.</p>
 {% endif %}
 
+<hr>
 <a href="{% url 'post-list' %}">Back to posts</a>
 {% endblock %}
