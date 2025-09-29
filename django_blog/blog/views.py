@@ -1,4 +1,3 @@
-# blog/views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.contrib.auth import login
@@ -179,20 +178,20 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 # Tag + Search Views
 # ==============================
 
-class TagPostsListView(ListView):
-    """List posts filtered by a specific tag."""
+class PostByTagListView(ListView):
+    """List posts filtered by a specific tag slug."""
     model = Post
     template_name = 'blog/posts_by_tag.html'
     context_object_name = 'posts'
     paginate_by = 10
 
     def get_queryset(self):
-        tag_name = self.kwargs.get('tag_name')
-        return Post.objects.filter(tags__name__iexact=tag_name).order_by('-published_date')
+        tag_slug = self.kwargs.get('tag_slug')
+        return Post.objects.filter(tags__slug=tag_slug).order_by('-published_date')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['tag_name'] = self.kwargs.get('tag_name')
+        context['tag_slug'] = self.kwargs.get('tag_slug')
         return context
 
 
